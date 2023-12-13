@@ -35,6 +35,10 @@ int own_env(char **args);
 int own_help(char **args);
 
 int main(int argc, char *argv[]);
+int shell(info_t *info, char **av);
+int builtin(info_t *info);
+void cmd(info_t *info);
+void forkc(info_t *info);
 
 
 #endif
