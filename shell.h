@@ -11,6 +11,9 @@
 
 #define MAX_ARGS 10
 #define MAX_BUFFER 1024
+#define MAX_CMD_LENGTH 100
+#define MAX_PATH_LENGTH 100
+
 
 
 /*---Macros---*/
