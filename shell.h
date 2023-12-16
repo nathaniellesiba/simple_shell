@@ -7,9 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <sys/types.h>
 
 
-#define MAX_ARGS 10
 #define MAX_BUFFER 1024
 #define MAX_CMD_LENGTH 100
 #define MAX_PATH_LENGTH 100
@@ -51,6 +51,12 @@ void forkc(info_t *info);
 /*print current environment*/
 void print_environment(char* envp[]);
 int main(int argc, char* argv[], char* envp[]);
+void parse_path(char *env_path);
+char *get_command_path(char *command);
+
+
+
+
 
 
 #endif

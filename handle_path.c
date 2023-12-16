@@ -1,75 +1,98 @@
 #include "shell.h"
 
+#define MAX_ARGS 64
+#define MAX_PATH 1024
 
 /**
-*descriptor - handle path
-*return: 0 on success
+**path_dirs - pointer to path
+*@env_path: the environment path
+*return: always 0
 */
 
+char *path_dirs[MAX_ARGS];
 
-int main()
-{
-    char input[MAX_CMD_LENGTH];
-    char path[MAX_PATH_LENGTH];
+void parse_path(char *env_path) {
+    int i = 0;
+    char *dir = strtok(env_path, ":");
+    while (dir != NULL && i < MAX_ARGS) {
+        path_dirs[i++] = dir;
+        dir = strtok(NULL, ":");
+    }
+    path_dirs[i] = NULL;
+}
 
-    /*Get the PATH environment variable*/
+char *get_command_path(char *command) {
+    char *command_path = malloc(MAX_PATH);
+    if (command[0] == '/') {
+        // Absolute path provided
+        strcpy(command_path, command);
+        return command_path;
+    }
+
+    // Check command in each directory in PATH
+    for (int i = 0; path_dirs[i] != NULL; i++) {
+        snprintf(command_path, MAX_PATH, "%s/%s", path_dirs[i], command);
+        if (access(command_path, X_OK) == 0) {
+            return command_path;
+        }
+    }
+
+    // Command not found
+    free(command_path);
+    return NULL;
+}
+
+int main() {
+    char *input;
+    char *args[MAX_ARGS];
     char *env_path = getenv("PATH");
 
-    while (1)
-     {
-        printf("shell> ");
-        fgets(input, MAX_CMD_LENGTH, stdin);
+    parse_path(env_path);
 
-        /*Remove the newline character*/
+    while (1) {
+        printf(":) ");
+        fflush(stdout);
+
+        input = NULL;
+        size_t input_size = 0;
+        getline(&input, &input_size, stdin);
+
+        // Remove newline character from input
         input[strcspn(input, "\n")] = 0;
 
-        /*Check if the command exists in any directory of the PATH*/
-        char *dir = strtok(env_path, ":");
-        int command_exists = 0;
+        // Split input into arguments
+        int i = 0;
+        args[i] = strtok(input, " ");
+        while (args[i] != NULL && i < MAX_ARGS - 1) {
+            args[++i] = strtok(NULL, " ");
+        }
+        args[i] = NULL;
 
-        while (dir != NULL) 
-        {
-            /*Construct the full path to the command*/
-            snprintf(path, sizeof(path), "%s/%s", dir, input);
-
-            /*Check if the file exists*/
-            if (access(path, F_OK) == 0)
-            {
-                command_exists = 1;
-                break;
+        if (args[0] != NULL) {
+            // Check if command exists
+            char *command_path = get_command_path(args[0]);
+            if (command_path == NULL) {
+                printf("Command not found: %s\n", args[0]);
+                continue;
             }
 
-            dir = strtok(NULL, ":");
-        }
-
-        if (command_exists) 
-        {
-            /*Fork and execute the command*/
             pid_t pid = fork();
-
-            if (pid == 0) 
-            {
-                /*Child process*/
-                execl(path, input, NULL);
-                perror("exec failed");
-                exit(1);
-            } 
-            else if (pid > 0) 
-            {
-                /*Parent process*/
+            if (pid == 0) {
+                // Child process
+                execv(command_path, args);
+                perror("execv");
+                exit(EXIT_FAILURE);
+            } else if (pid > 0) {
+                // Parent process
                 wait(NULL);
-            } 
-            else 
-            {
-                /*Fork failed*/
-                perror("fork failed");
-                exit(1);
+            } else {
+                perror("fork");
             }
+
+            free(command_path);
         }
-        else
-        {
-            printf("Command not found: %s\n", input);
-        }
+
+        free(input);
     }
 
     return (0);
