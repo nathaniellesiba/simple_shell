@@ -8,6 +8,11 @@
 #include <string.h>
 #include <sys/wait.h>
 
+
+#define MAX_ARGS 10
+#define MAX_BUFFER 1024
+
+
 /*---Macros---*/
 #define TOK_DELIM " \t\r\n\a\""
 extern char **environ;
@@ -39,6 +44,10 @@ int shell(info_t *info, char **av);
 int builtin(info_t *info);
 void cmd(info_t *info);
 void forkc(info_t *info);
+
+/*print current environment*/
+void print_environment(char* envp[]);
+int main(int argc, char* argv[], char* envp[]);
 
 
 #endif
