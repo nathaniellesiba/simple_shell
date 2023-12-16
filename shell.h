@@ -54,6 +54,7 @@ int main(int argc, char* argv[], char* envp[]);
 void parse_path(char *env_path);
 char *get_command_path(char *command);
 void parseInput(char* input);
+void env_builtin();
 
 
 
